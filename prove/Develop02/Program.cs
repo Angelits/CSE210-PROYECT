@@ -1,3 +1,7 @@
+//For showing creativity and exceeding requirements I thought of another reason why people dont write on journals and ine I thought is 
+//because they feel whatever they write will not really soothe their emotions so in the first part where the menu is displayed 
+// I wrote a significant note regarding the person to just be himself/herself and write whatever feels okay 
+
 using System;
 using System.Collections.Generic;
 using System.IO;
