@@ -42,7 +42,7 @@ class Program
             }
             else
             {
-                Console.WriteLine("All words are now hidden. Exiting.");
+                Console.WriteLine("All the words are hidden now. Exiting.");
                 break;
             }
         }
