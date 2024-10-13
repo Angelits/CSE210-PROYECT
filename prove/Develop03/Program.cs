@@ -3,27 +3,32 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-class Program
+class ScriptureStudy
 {
-    static void Main()
+    private Dictionary<string, string> scriptures;
+    private HashSet<int> hiddenWords;
+    private Random random;
+
+    public ScriptureStudy()
     {
-        var scriptures = new Dictionary<string, string>
+        scriptures = new Dictionary<string, string>
         {
             { "Alma 32:35", "Yea, because it is light and whatsoever is light is good" },
             { "John 3:16", "For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life" },
             { "3 Nephi 18:20-21", "And whatsoever ye shall ask the Father in my name, which is right, believing that ye shall receive, behold it shall be given unto you. Pray in your families unto the Father, always in my name, that your wives and your children may be blessed" }
         };
+        hiddenWords = new HashSet<int>();
+        random = new Random();
+    }
 
-        var random = new Random();
+    public void StartSession()
+    {
         var scriptureKeys = scriptures.Keys.ToList();
         var selectedScripture = scriptureKeys[random.Next(scriptureKeys.Count)];
         var scriptureText = scriptures[selectedScripture];
 
-        var words = scriptureText.Split(new[] { ' ', ',', '.' }, StringSplitOptions.RemoveEmptyEntries);
-        var hiddenWords = new HashSet<int>();
-
         Console.Clear();
-        DisplayScripture(selectedScripture, scriptureText, hiddenWords);
+        DisplayScripture(selectedScripture, scriptureText);
 
         while (true)
         {
@@ -32,40 +37,26 @@ class Program
 
             if (input?.ToLower() == "quit")
             {
-                break;
+                Console.WriteLine("Program exiting. Thank you for participating!");
+                break; // Exit the loop
             }
-            else if (hiddenWords.Count < words.Length)
+            else if (hiddenWords.Count < scriptureText.Split(new[] { ' ', ',', '.' }, StringSplitOptions.RemoveEmptyEntries).Length)
             {
-                HideRandomWord(hiddenWords, words.Length, random);
+                HideRandomWord(scriptureText);
                 Console.Clear();
-                DisplayScripture(selectedScripture, scriptureText, hiddenWords);
+                DisplayScripture(selectedScripture, scriptureText);
             }
             else
             {
                 Console.WriteLine("All the words are hidden now. Exiting.");
-                break;
+                break; // Exit the loop
             }
         }
 
-        // Feedback section
-        Console.WriteLine("\nThank you for participating in this scripture study session. Did you enjoy it? (yes/no)");
-        var feedback = Console.ReadLine()?.ToLower();
-        
-        if (feedback == "yes")
-        {
-            Console.WriteLine("Glad to hear that! Keep that momentum!");
-        }
-        else if (feedback == "no")
-        {
-            Console.WriteLine("Understood, thank you for the feedback. Have a good day!");
-        }
-        else
-        {
-            Console.WriteLine("Thank you for your response! Have a great day!");
-        }
+        ProvideFeedback();
     }
 
-    static void DisplayScripture(string reference, string text, HashSet<int> hiddenWords)
+    private void DisplayScripture(string reference, string text)
     {
         Console.WriteLine(reference);
         var words = text.Split(new[] { ' ', ',', '.' }, StringSplitOptions.RemoveEmptyEntries);
@@ -83,14 +74,45 @@ class Program
         Console.WriteLine();
     }
 
-    static void HideRandomWord(HashSet<int> hiddenWords, int totalWords, Random random)
+    private void HideRandomWord(string text)
     {
+        var words = text.Split(new[] { ' ', ',', '.' }, StringSplitOptions.RemoveEmptyEntries);
         int wordIndex;
         do
         {
-            wordIndex = random.Next(totalWords);
-        } while (hiddenWords.Contains(wordIndex)); // Continue until we find an index not already hidden
+            wordIndex = random.Next(words.Length);
+        } while (hiddenWords.Contains(wordIndex));
 
         hiddenWords.Add(wordIndex);
     }
+
+    private void ProvideFeedback()
+    {
+        Console.WriteLine("\nThank you for participating in this scripture study session, was this method useful? (yes/no)");
+        var feedback = Console.ReadLine()?.ToLower();
+
+        if (feedback == "yes")
+        {
+            Console.WriteLine("Glad to hear that!!, have an excellent day!");
+        }
+        else if (feedback == "no")
+        {
+            Console.WriteLine("Understood, thank you for the feedback. Have a good day");
+        }
+        else
+        {
+            Console.WriteLine("Thank you for your response! Have a great day!");
+        }
+    }
 }
+
+class Program
+{
+    static void Main()
+    {
+        var scriptureStudy = new ScriptureStudy();
+        scriptureStudy.StartSession();
+    }
+}
+
+
