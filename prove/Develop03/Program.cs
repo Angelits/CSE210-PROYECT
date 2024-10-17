@@ -3,32 +3,82 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-class ScriptureStudy
+public class Word
 {
-    private Dictionary<string, string> scriptures;
-    private HashSet<int> hiddenWords;
-    private Random random;
+    private string _text;
+    private bool _isHidden;
 
-    public ScriptureStudy()
+    public Word(string text)
     {
-        scriptures = new Dictionary<string, string>
+        _text = text;
+        _isHidden = false;
+    }
+
+    public string Text => _text;
+
+    public bool IsHidden => _isHidden;
+
+    public void Hide()
+    {
+        _isHidden = true;
+    }
+}
+
+public class Reference
+{
+    private string _referenceText;
+    private List<Word> _words;
+
+    public Reference(string referenceText, string scriptureText)
+    {
+        _referenceText = referenceText;
+        _words = scriptureText.Split(new[] { ' ', ',', '.' }, StringSplitOptions.RemoveEmptyEntries)
+                               .Select(wordText => new Word(wordText))
+                               .ToList();
+    }
+
+    public string ReferenceText => _referenceText;
+
+    public List<Word> Words => _words;
+
+    public bool AllWordsHidden => _words.All(word => word.IsHidden);
+
+    public void HideRandomWord(Random random)
+    {
+        int wordIndex;
+        do
         {
-            { "Alma 32:35", "Yea, because it is light and whatsoever is light is good" },
-            { "John 3:16", "For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life" },
-            { "3 Nephi 18:20-21", "And whatsoever ye shall ask the Father in my name, which is right, believing that ye shall receive, behold it shall be given unto you. Pray in your families unto the Father, always in my name, that your wives and your children may be blessed" }
+            wordIndex = random.Next(_words.Count);
+        } while (_words[wordIndex].IsHidden);
+
+        _words[wordIndex].Hide();
+    }
+}
+
+class Scripture
+{
+    private Dictionary<string, Reference> _scriptures;
+    private Random _random;
+
+    public Scripture()
+    {
+        _scriptures = new Dictionary<string, Reference>
+        {
+            { "Alma 32:35", new Reference("Alma 32:35", "Yea, because it is light and whatsoever is light is good") },
+            { "John 3:16", new Reference("John 3:16", "For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life") },
+            { "3 Nephi 18:20-21", new Reference("3 Nephi 18:20-21", "And whatsoever ye shall ask the Father in my name, which is right, believing that ye shall receive, behold it shall be given unto you. Pray in your families unto the Father, always in my name, that your wives and your children may be blessed") }
         };
-        hiddenWords = new HashSet<int>();
-        random = new Random();
+        _random = new Random();
     }
 
     public void StartSession()
     {
-        var scriptureKeys = scriptures.Keys.ToList();
-        var selectedScripture = scriptureKeys[random.Next(scriptureKeys.Count)];
-        var scriptureText = scriptures[selectedScripture];
+        var scriptureKeys = _scriptures.Keys.ToList();
+        var selectedScriptureKey = scriptureKeys[_random.Next(scriptureKeys.Count)];
+        var selectedReference = _scriptures[selectedScriptureKey];
 
         Console.Clear();
-        DisplayScripture(selectedScripture, scriptureText);
+        DisplayScripture(selectedReference);
 
         while (true)
         {
@@ -38,52 +88,32 @@ class ScriptureStudy
             if (input?.ToLower() == "quit")
             {
                 Console.WriteLine("Program exiting. Thank you for participating!");
-                break; // Exit the loop
+                break; 
             }
-            else if (hiddenWords.Count < scriptureText.Split(new[] { ' ', ',', '.' }, StringSplitOptions.RemoveEmptyEntries).Length)
+            else if (!selectedReference.AllWordsHidden)
             {
-                HideRandomWord(scriptureText);
+                selectedReference.HideRandomWord(_random);
                 Console.Clear();
-                DisplayScripture(selectedScripture, scriptureText);
+                DisplayScripture(selectedReference);
             }
             else
             {
                 Console.WriteLine("All the words are hidden now. Exiting.");
-                break; // Exit the loop
+                break; // 
             }
         }
 
         ProvideFeedback();
     }
 
-    private void DisplayScripture(string reference, string text)
+    private void DisplayScripture(Reference reference)
     {
-        Console.WriteLine(reference);
-        var words = text.Split(new[] { ' ', ',', '.' }, StringSplitOptions.RemoveEmptyEntries);
-        for (int i = 0; i < words.Length; i++)
+        Console.WriteLine(reference.ReferenceText);
+        foreach (var word in reference.Words)
         {
-            if (hiddenWords.Contains(i))
-            {
-                Console.Write(new string('_', words[i].Length) + " ");
-            }
-            else
-            {
-                Console.Write(words[i] + " ");
-            }
+            Console.Write(word.IsHidden ? new string('_', word.Text.Length) + " " : word.Text + " ");
         }
         Console.WriteLine();
-    }
-
-    private void HideRandomWord(string text)
-    {
-        var words = text.Split(new[] { ' ', ',', '.' }, StringSplitOptions.RemoveEmptyEntries);
-        int wordIndex;
-        do
-        {
-            wordIndex = random.Next(words.Length);
-        } while (hiddenWords.Contains(wordIndex));
-
-        hiddenWords.Add(wordIndex);
     }
 
     private void ProvideFeedback()
@@ -110,9 +140,8 @@ class Program
 {
     static void Main()
     {
-        var scriptureStudy = new ScriptureStudy();
+        var scriptureStudy = new Scripture();
         scriptureStudy.StartSession();
     }
 }
-
 
